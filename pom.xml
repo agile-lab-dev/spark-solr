@@ -3,10 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.lucidworks.spark</groupId>
-    <artifactId>spark-solr-wasp</artifactId>
+    <artifactId>spark-solr</artifactId>
     <packaging>jar</packaging>
     <version>1.0.0</version>
-    <name>spark-solr-wasp</name>
+    <name>spark-solr</name>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -51,8 +51,8 @@
                                     <exclude>com.google.protobuf_spark:*</exclude>
                                     <exclude>com.google.guava:guava</exclude>
                                     <exclude>org.scala-lang:scala-library</exclude>
-                                    <exclude>com.twitter:chill_2.10</exclude>
-                                    <exclude>com.twitter:chill-java</exclude>
+                                    <!--exclude>com.twitter:chill_2.10</exclude>
+                                    <exclude>com.twitter:chill-java</exclude-->
                                     <exclude>org.spark-project.akka:akka-remote_2.10</exclude>
                                     <exclude>org.spark-project.akka:akka-slf4j_2.10</exclude>
                                     <exclude>net.java.dev.jets3t:jets3t</exclude>
@@ -83,6 +83,7 @@
                                     <exclude>com.sun.xml.bind:jaxb-impl</exclude>
                                     <exclude>com.sun.jersey:jersey-client</exclude>
                                     <exclude>org.mortbay.jetty:jetty-util</exclude>
+                                    <exclude>javax.servlet:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <relocations>
@@ -141,11 +142,11 @@
             <version>1.6.2</version>
         </dependency>
 
-        <dependency>
+        <!--dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming-twitter_2.10</artifactId>
             <version>1.6.2</version>
-        </dependency>
+        </dependency-->
 
         <dependency>
             <groupId>commons-cli</groupId>
@@ -217,13 +218,15 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.2.3</version>
+            <version>2.4.4</version>
+            <!--version>2.2.3</version-->
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.2.3</version>
+            <version>2.4.4</version>
+            <!--version>2.2.3</version-->
         </dependency>
 
     </dependencies>

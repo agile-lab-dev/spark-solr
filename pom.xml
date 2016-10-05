@@ -28,7 +28,7 @@
                 <version>2.3</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>

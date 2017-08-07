@@ -5,13 +5,40 @@
     <groupId>it.agilelab.bigdata.spark</groupId>
     <artifactId>spark-solr</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>${completeVersion}</version>
     <name>spark-solr</name>
     <url>http://maven.apache.org</url>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.7</java.version>
+        <scala.version>2.10</scala.version>
+        <spark.version>1.6.3</spark.version>
+        <baseVersion>1.1.0</baseVersion>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>spark-1.6-scala-2.10</id>
+            <properties>
+                <completeVersion>${baseVersion}-spark-1.6-scala-2.10</completeVersion>
+                <scala.version>2.10</scala.version>
+                <spark.version>1.6.3</spark.version>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>spark-1.6-scala-2.11</id>
+            <properties>
+                <completeVersion>${baseVersion}-spark-1.6-scala-2.11</completeVersion>
+                <scala.version>2.11</scala.version>
+                <spark.version>1.6.3</spark.version>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -45,16 +72,16 @@
                             </filters>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.apache.spark:spark-core_2.10</exclude>
-                                    <exclude>org.apache.spark:spark-streaming_2.10</exclude>
+                                    <exclude>org.apache.spark:spark-core_${scala.version}</exclude>
+                                    <exclude>org.apache.spark:spark-streaming_${scala.version}</exclude>
                                     <exclude>org.apache.hadoop:*</exclude>
                                     <exclude>com.google.protobuf_spark:*</exclude>
                                     <exclude>com.google.guava:guava</exclude>
                                     <exclude>org.scala-lang:scala-library</exclude>
-                                    <!--exclude>com.twitter:chill_2.10</exclude>
+                                    <!--exclude>com.twitter:chill_${scala.version}</exclude>
                                     <exclude>com.twitter:chill-java</exclude-->
-                                    <exclude>org.spark-project.akka:akka-remote_2.10</exclude>
-                                    <exclude>org.spark-project.akka:akka-slf4j_2.10</exclude>
+                                    <exclude>org.spark-project.akka:akka-remote_${scala.version}</exclude>
+                                    <exclude>org.spark-project.akka:akka-slf4j_${scala.version}</exclude>
                                     <exclude>net.java.dev.jets3t:jets3t</exclude>
                                     <exclude>org.eclipse.jetty:*</exclude>
                                     <exclude>org.eclipse.jetty.orbit:*</exclude>
@@ -104,14 +131,53 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- This plugin is needed because otherwise the installed POM would have a non-resolved variable as project
+                 version, breaking depeendency resolution. See also MNG-2971 -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution><!-- Replace the placeholder of the pom by their values (used by the install plugin below)-->
+                        <id>replace-pom-placeholder</id>
+                        <phase>package</phase>
+                        <goals><goal>single</goal></goals>
+                        <configuration>
+                            <finalName>modified-pom</finalName>
+                            <descriptors>
+                                <descriptor>src/assemble/replacePomPlaceholder.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- This plugin is needed because otherwise the installed POM would have a non-resolved variable as project
+                 version, breaking depeendency resolution. See also MNG-2971 -->
+            <plugin>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <executions>
+                    <execution><!-- Replaces the pom (with placeholders) in the repository with the pom without placeholders -->
+                        <id>overwrite-pom</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                            <pomFile>target/modified-pom-replacePomPlaceholder/modified-pom/pom.xml</pomFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
     <dependencies>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.10</artifactId>
-            <version>1.6.2</version>
+            <artifactId>spark-core_${scala.version}</artifactId>
+            <version>${spark.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -131,21 +197,21 @@
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming_2.10</artifactId>
-            <version>1.6.2</version>
+            <artifactId>spark-streaming_${scala.version}</artifactId>
+            <version>${spark.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-mllib_2.10</artifactId>
-            <version>1.6.2</version>
+            <artifactId>spark-mllib_${scala.version}</artifactId>
+            <version>${spark.version}</version>
         </dependency>
 
         <!--dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming-twitter_2.10</artifactId>
-            <version>1.6.2</version>
+            <artifactId>spark-streaming-twitter_${scala.version}</artifactId>
+            <version>${spark.version}</version>
         </dependency-->
 
         <dependency>

@@ -60,6 +60,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <finalName>${project.build.finalName}-shaded.jar</finalName>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -132,15 +133,18 @@
                 </executions>
             </plugin>
             <!-- This plugin is needed because otherwise the installed POM would have a non-resolved variable as project
-                 version, breaking depeendency resolution. See also MNG-2971 -->
+                 version, breaking dependency resolution. See also MNG-2971 -->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.0.0</version>
                 <executions>
-                    <execution><!-- Replace the placeholder of the pom by their values (used by the install plugin below)-->
+                    <!-- Replace the placeholders in the pom by their values (used by the install plugin below)-->
+                    <execution>
                         <id>replace-pom-placeholder</id>
                         <phase>package</phase>
-                        <goals><goal>single</goal></goals>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
                         <configuration>
                             <finalName>modified-pom</finalName>
                             <descriptors>
@@ -151,20 +155,48 @@
                 </executions>
             </plugin>
             <!-- This plugin is needed because otherwise the installed POM would have a non-resolved variable as project
-                 version, breaking depeendency resolution. See also MNG-2971 -->
+                 version, breaking dependency resolution. See also MNG-2971 -->
             <plugin>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>2.5.2</version>
                 <executions>
-                    <execution><!-- Replaces the pom (with placeholders) in the repository with the pom without placeholders -->
+                    <!-- Replaces the pom (with placeholders) in the repository with the pom without placeholders -->
+                    <execution>
                         <id>overwrite-pom</id>
                         <phase>install</phase>
                         <goals>
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                            <file>target/${project.build.finalName}.jar</file>
                             <pomFile>target/modified-pom-replacePomPlaceholder/modified-pom/pom.xml</pomFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- This plugin is needed because otherwise the deployed POM would have a non-resolved variable as project
+                 version, breaking dependency resolution. See also MNG-2971 -->
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <executions>
+                    <!-- Disable the default execution -->
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>none</phase>
+                    </execution>
+                    <!-- Deploys the pom without placeholders instead of the one with placeholders -->
+                    <execution>
+                        <id>custom-deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy-file</goal>
+                        </goals>
+                        <configuration>
+                            <file>target/${project.build.finalName}.jar</file>
+                            <pomFile>target/modified-pom-replacePomPlaceholder/modified-pom/pom.xml</pomFile>
+                            <repositoryId>bintray-repo</repositoryId>
+                            <url>https://api.bintray.com/maven/agile-lab-dev/Spark-Solr/spark-solr</url>
                         </configuration>
                     </execution>
                 </executions>
@@ -173,73 +205,62 @@
     </build>
 
     <dependencies>
-
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.version}</artifactId>
             <version>${spark.version}</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>com.esotericsoftware.kryo</groupId>
             <artifactId>kryo</artifactId>
             <version>2.21</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>com.codahale.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>3.0.0</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_${scala.version}</artifactId>
             <version>${spark.version}</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-mllib_${scala.version}</artifactId>
             <version>${spark.version}</version>
         </dependency>
-
         <!--dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming-twitter_${scala.version}</artifactId>
             <version>${spark.version}</version>
         </dependency-->
-
         <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
             <version>1.2</version>
         </dependency>
-
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.3</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
             <version>4.10.3</version>
             <type>jar</type>
         </dependency>
-
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
             <version>4.10.3</version>
             <type>jar</type>
         </dependency>
-
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-test-framework</artifactId>
@@ -247,53 +268,46 @@
             <type>jar</type>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>1.9.11</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>2.4.1</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>2.4.1</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.3.2</version>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.8.1</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>2.4.4</version>
             <!--version>2.2.3</version-->
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.4.4</version>
             <!--version>2.2.3</version-->
         </dependency>
-
     </dependencies>
+
 </project>

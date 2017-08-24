@@ -1,19 +1,5 @@
 package com.lucidworks.spark;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.ConnectException;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
 import com.lucidworks.spark.query.PagedResultsIterator;
 import com.lucidworks.spark.query.SolrTermVector;
 import com.lucidworks.spark.util.SolrJsonSupport;
@@ -27,11 +13,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
-import org.apache.solr.common.cloud.ClusterState;
-import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.Slice;
-import org.apache.solr.common.cloud.ZkCoreNodeProps;
-import org.apache.solr.common.cloud.ZkStateReader;
+import org.apache.solr.common.cloud.*;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.spark.api.java.JavaRDD;
@@ -39,18 +21,26 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.feature.HashingTF;
-// import org.apache.spark.sql.api.java.SQLContext;
-// import org.apache.spark.sql.api.java.DataFrame;
-
-import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.types.*;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.ConnectException;
+import java.net.SocketException;
+import java.util.*;
+
+// import org.apache.spark.sql.api.java.SQLContext;
+// import org.apache.spark.sql.api.java.DataFrame;
 // import org.apache.spark.sql.api.java.DataType;
 // import org.apache.spark.sql.api.java.StructType;
 // import org.apache.spark.sql.api.java.StructField;
 // import org.apache.spark.sql.api.java.Row;
-import org.apache.spark.sql.Row;
 
 
 public class SolrRDD implements Serializable {
@@ -182,7 +172,7 @@ public class SolrRDD implements Serializable {
     // parallelize the requests to the shards
     JavaRDD<SolrDocument> docs = jsc.parallelize(shards).flatMap(
       new FlatMapFunction<String, SolrDocument>() {
-        public Iterable<SolrDocument> call(String shardUrl) throws Exception {
+        public Iterator<SolrDocument> call(String shardUrl) throws Exception {
           return new QueryResultsIterator(new HttpSolrServer(shardUrl), query, "*");
         }
       }
@@ -214,7 +204,7 @@ public class SolrRDD implements Serializable {
     // parallelize the requests to the shards
     JavaRDD<SolrTermVector> docs = jsc.parallelize(shards).flatMap(
       new FlatMapFunction<String, SolrTermVector>() {
-        public Iterable<SolrTermVector> call(String shardUrl) throws Exception {
+        public Iterator<SolrTermVector> call(String shardUrl) throws Exception {
           return new TermVectorIterator(new HttpSolrServer(shardUrl), query, "*", field, numFeatures);
         }
       }
@@ -284,8 +274,8 @@ public class SolrRDD implements Serializable {
     // now we need to execute all the cursors in parallel
     JavaRDD<SolrDocument> docs = cursorJavaRDD.flatMap(
       new FlatMapFunction<String, SolrDocument>() {
-        public Iterable<SolrDocument> call(String cursorMark) throws Exception {
-          return querySolr(getSolrServer(zkHost), query, 0, cursorMark).getResults();
+        public Iterator<SolrDocument> call(String cursorMark) throws Exception {
+          return querySolr(getSolrServer(zkHost), query, 0, cursorMark).getResults().iterator();
         }
       }
     );
@@ -305,7 +295,7 @@ public class SolrRDD implements Serializable {
     solrDataTypes.put("solr.TrieDateField", DataTypes.TimestampType);
   }
 
-  public DataFrame applySchema(SQLContext sqlContext,
+  public Dataset<Row> applySchema(SQLContext sqlContext,
                                SolrQuery query,
                                JavaRDD<SolrDocument> docs,
                                String zkHost,

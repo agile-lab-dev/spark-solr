@@ -110,7 +110,7 @@ public class ShardPartitioner extends Partitioner implements Serializable {
 
   protected final synchronized CloudSolrServer getCloudSolrServer() {
     if (cloudSolrServer == null)
-      cloudSolrServer = (CloudSolrServer)SolrSupport.getSolrServer(zkHost);
+      cloudSolrServer = SolrSupport.getSolrServer(zkHost);
     return cloudSolrServer;
   }
 }

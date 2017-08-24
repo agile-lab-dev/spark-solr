@@ -1,27 +1,5 @@
 package com.lucidworks.spark;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.ConnectException;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.lucidworks.spark.filter.DocFilterContext;
 import com.lucidworks.spark.util.EmbeddedSolrServerFactory;
 import org.apache.commons.httpclient.ConnectTimeoutException;
@@ -43,10 +21,23 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import scala.Tuple2;
+
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.ConnectException;
+import java.net.SocketException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A stateless utility class that provides static method for working with the SolrJ API.
@@ -142,10 +133,9 @@ public class SolrSupport implements Serializable {
                                         JavaDStream<SolrInputDocument> docs)
   {
     docs.foreachRDD(
-      new Function<JavaRDD<SolrInputDocument>, Void>() {
-        public Void call(JavaRDD<SolrInputDocument> solrInputDocumentJavaRDD) throws Exception {
+      new VoidFunction<JavaRDD<SolrInputDocument>>() {
+        public void call(JavaRDD<SolrInputDocument> solrInputDocumentJavaRDD) throws Exception {
           indexDocs(zkHost, collection, batchSize, solrInputDocumentJavaRDD);
-          return null;
         }
       }
     );
@@ -348,7 +338,7 @@ public class SolrSupport implements Serializable {
 
     JavaDStream<SolrInputDocument> enriched = docs.mapPartitions(
       new FlatMapFunction<Iterator<SolrInputDocument>, SolrInputDocument>() {
-        public Iterable<SolrInputDocument> call(Iterator<SolrInputDocument> solrInputDocumentIterator) throws Exception {
+        public Iterator<SolrInputDocument> call(Iterator<SolrInputDocument> solrInputDocumentIterator) throws Exception {
           final long startNano = System.nanoTime();
 
           final int partitionId = partitionIndex.incrementAndGet();
@@ -405,7 +395,7 @@ public class SolrSupport implements Serializable {
             inputDoc.removeField("docfilterid_i"); // leave no trace of our inner-workings
           }
 
-          return inputDocs.values();
+          return inputDocs.values().iterator();
         }
       }
     );

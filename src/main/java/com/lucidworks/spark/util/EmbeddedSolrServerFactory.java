@@ -1,11 +1,8 @@
 package com.lucidworks.spark.util;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.lucidworks.spark.SolrSupport;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.cloud.ZkController;
@@ -15,9 +12,10 @@ import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.core.SolrResourceLoader;
 
-import org.apache.log4j.Logger;
-
-import org.apache.commons.io.FileUtils;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Supports one or more embedded Solr servers in the same JVM
@@ -52,7 +50,7 @@ public class EmbeddedSolrServerFactory implements Serializable {
 
   private EmbeddedSolrServer bootstrapEmbeddedSolrServer(String zkHost, String collection) throws Exception {
 
-    CloudSolrServer cloudClient = (CloudSolrServer)SolrSupport.getSolrServer(zkHost);
+    CloudSolrServer cloudClient = SolrSupport.getSolrServer(zkHost);
     cloudClient.connect();
 
     ZkStateReader zkStateReader = cloudClient.getZkStateReader();

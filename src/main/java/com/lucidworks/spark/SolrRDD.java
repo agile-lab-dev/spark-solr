@@ -2,7 +2,7 @@ package com.lucidworks.spark;
 
 import com.lucidworks.spark.query.PagedResultsIterator;
 import com.lucidworks.spark.query.SolrTermVector;
-import com.lucidworks.spark.util.SolrJsonSupport;
+import com.lucidworks.spark.util.SolrJsonSupportLegacy;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -351,8 +351,8 @@ public class SolrRDD implements Serializable {
         String fieldType = null;
         try {
           Map<String, Object> fieldMeta =
-            SolrJsonSupport.getJson(SolrJsonSupport.getHttpClient(), fieldUrl, 2);
-          fieldType = SolrJsonSupport.asString("/field/type", fieldMeta);
+            SolrJsonSupportLegacy.getJson(SolrJsonSupportLegacy.getHttpClient(), fieldUrl, 2);
+          fieldType = SolrJsonSupportLegacy.asString("/field/type", fieldMeta);
         } catch (SolrException solrExc) {
           int errCode = solrExc.code();
           if (errCode == 404) {
@@ -366,8 +366,8 @@ public class SolrRDD implements Serializable {
                 String dynamicFieldsUrl = solrBaseUrl+collection+"/schema/dynamicfields/"+dynField;
                 try {
                   Map<String, Object> dynFieldMeta =
-                    SolrJsonSupport.getJson(SolrJsonSupport.getHttpClient(), dynamicFieldsUrl, 2);
-                  fieldType = SolrJsonSupport.asString("/dynamicField/type", dynFieldMeta);
+                    SolrJsonSupportLegacy.getJson(SolrJsonSupportLegacy.getHttpClient(), dynamicFieldsUrl, 2);
+                  fieldType = SolrJsonSupportLegacy.asString("/dynamicField/type", dynFieldMeta);
 
                   fieldTypeMap.put(dynField, fieldType);
                 } catch (Exception exc) {
@@ -386,11 +386,11 @@ public class SolrRDD implements Serializable {
 
         String fieldTypeUrl = solrBaseUrl+collection+"/schema/fieldtypes/"+fieldType;
         Map<String, Object> fieldTypeMeta =
-          SolrJsonSupport.getJson(SolrJsonSupport.getHttpClient(), fieldTypeUrl, 2);
-        String fieldTypeClass = SolrJsonSupport.asString("/fieldType/class", fieldTypeMeta);
+          SolrJsonSupportLegacy.getJson(SolrJsonSupportLegacy.getHttpClient(), fieldTypeUrl, 2);
+        String fieldTypeClass = SolrJsonSupportLegacy.asString("/fieldType/class", fieldTypeMeta);
 
         // map all the other fields for this type to speed up the schema analysis
-        List<String> otherFields = SolrJsonSupport.asList("/fieldType/fields", fieldTypeMeta);
+        List<String> otherFields = SolrJsonSupportLegacy.asList("/fieldType/fields", fieldTypeMeta);
         for (String other : otherFields)
           fieldTypeMap.put(other, fieldTypeClass);
 

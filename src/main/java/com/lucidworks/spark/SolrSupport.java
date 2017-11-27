@@ -18,6 +18,9 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -49,6 +52,17 @@ public class SolrSupport implements Serializable {
   private static Map<String,CloudSolrServer> solrServers = new HashMap<String, CloudSolrServer>();
   private static Map<String,ConcurrentUpdateSolrServer> leaderServers = new HashMap<String,ConcurrentUpdateSolrServer>();
 
+  public static String getSolrBaseUrl(String zkHost) {
+    CloudSolrServer solrClient = getSolrServer(zkHost);
+    Set<String> liveNodes = solrClient.getZkStateReader().getClusterState().getLiveNodes();
+    if (liveNodes.isEmpty()) {
+      throw new RuntimeException("No live nodes found for cluster: " + zkHost);
+    }
+    String solrBaseUrl = solrClient.getZkStateReader().getBaseUrlForNodeName(liveNodes.iterator().next());
+    if (!solrBaseUrl.endsWith("?")) solrBaseUrl += "/";
+    return solrBaseUrl;
+  }
+
   public static CloudSolrServer getSolrServer(String key) {
     CloudSolrServer solr = null;
     synchronized (solrServers) {
@@ -60,6 +74,22 @@ public class SolrSupport implements Serializable {
       }
     }
     return solr;
+  }
+
+  public static Map<String, String> getCollectionFieldsMap(String zkHost, String collection) throws SolrServerException{
+    final EmbeddedSolrServer solr = EmbeddedSolrServerFactory.singleton.getEmbeddedSolrServer(zkHost, collection);
+    SolrQuery query = new SolrQuery();
+    query.add(CommonParams.QT, "/schema/fields");
+    QueryResponse response = solr.query(query);
+    NamedList responseHeader = response.getResponseHeader();
+    ArrayList<SimpleOrderedMap> fields = (ArrayList<SimpleOrderedMap>) response.getResponse().get("fields");
+    HashMap<String, String> fieldsMap = new HashMap<String, String>(fields.size());
+    for (SimpleOrderedMap field : fields) {
+      String fieldName = (String)field.get("name");
+      String fieldType = (String)field.get("type");
+      fieldsMap.put(fieldName, fieldType);
+    }
+    return fieldsMap;
   }
 
   public static void streamDocsIntoSolr(final String zkHost,
@@ -208,7 +238,7 @@ public class SolrSupport implements Serializable {
     }
   }
 
-  private static boolean shouldRetry(Exception exc) {
+  public static boolean shouldRetry(Exception exc) {
     Throwable rootCause = SolrException.getRootCause(exc);
     return (rootCause instanceof ConnectException ||
             rootCause instanceof ConnectTimeoutException ||

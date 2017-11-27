@@ -21,7 +21,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.noggit.JSONParser;
 import org.noggit.ObjectBuilder;
 
-public class SolrJsonSupport {
+public class SolrJsonSupportLegacy {
 
   /**
    * Utility function for sending HTTP GET request to Solr with built-in retry support.
@@ -38,7 +38,7 @@ public class SolrJsonSupport {
           try {
             Thread.sleep(2000);
           } catch (InterruptedException ie) { Thread.interrupted(); }
-          
+
           // retry using recursion with one-less attempt available
           json = getJson(httpClient, getUrl, attempts);
         } else {
@@ -47,10 +47,10 @@ public class SolrJsonSupport {
         }
       }
     }
-    
+
     return json;
   }
-  
+
   /**
    * Utility function for sending HTTP GET request to Solr and then doing some
    * validation of the response.
@@ -67,15 +67,15 @@ public class SolrJsonSupport {
         getUrl += "&wt=json";
       }
     } else {
-      getUrl += "?wt=json";      
+      getUrl += "?wt=json";
     }
-       
+
     // Prepare a request object
     HttpGet httpget = new HttpGet(getUrl);
-    
+
     // Execute the request
     HttpResponse response = httpClient.execute(httpget);
-    
+
     // Get hold of the response entity
     HttpEntity entity = response.getEntity();
     int statusCode = response.getStatusLine().getStatusCode();
@@ -85,7 +85,7 @@ public class SolrJsonSupport {
         InputStream instream = entity.getContent();
         String line;
         try {
-          BufferedReader reader = 
+          BufferedReader reader =
               new BufferedReader(new InputStreamReader(instream, "UTF-8"));
           while ((line = reader.readLine()) != null) {
             body.append(line);
@@ -99,14 +99,14 @@ public class SolrJsonSupport {
       throw new SolrException(SolrException.ErrorCode.getErrorCode(statusCode),
         "GET request [" + getUrl + "] failed due to: " + response.getStatusLine() + ": " + body);
     }
-    
+
     // If the response does not enclose an entity, there is no need
     // to worry about connection release
     if (entity != null) {
       InputStreamReader isr = null;
       try {
         isr = new InputStreamReader(entity.getContent(), "UTF-8");
-        Object resp = 
+        Object resp =
             ObjectBuilder.getVal(new JSONParser(isr));
         if (resp != null && resp instanceof Map) {
           json = (Map<String,Object>)resp;
@@ -125,7 +125,7 @@ public class SolrJsonSupport {
         isr.close();
       }
     }
-    
+
     // lastly check the response JSON from Solr to see if it is an error
     statusCode = -1;
     Map responseHeader = (Map)json.get("responseHeader");
@@ -134,28 +134,28 @@ public class SolrJsonSupport {
       if (status != null)
         statusCode = status.intValue();
     }
-    
+
     if (statusCode == -1)
       throw new SolrServerException("Unable to determine outcome of GET request to: "+
         getUrl+"! Response: "+json);
-    
-    if (statusCode != 0) {      
+
+    if (statusCode != 0) {
       String errMsg = null;
       Map error = (Map) json.get("error");
       if (error != null) {
         errMsg = (String)error.get("msg");
       }
-      
+
       if (errMsg == null) errMsg = String.valueOf(json);
       throw new SolrException(SolrException.ErrorCode.getErrorCode(statusCode),
         "Request to "+getUrl+" failed due to: "+errMsg);
     }
 
     return json;
-  }  
+  }
 
   /**
-   * Helper function for reading a String value from a JSON Object tree. 
+   * Helper function for reading a String value from a JSON Object tree.
    */
   public static String asString(String jsonPath, Map<String,Object> json) {
     String str = null;

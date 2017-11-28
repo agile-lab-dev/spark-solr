@@ -1,0 +1,33 @@
+image: maven:latest
+
+variables:
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+
+cache:
+  key: "$CI_BUILD_REF_NAME" # contains either the branch or the tag, so it's caching per branch
+  paths:
+    - .m2/repository/
+    - target/
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS compile
+
+deploy:
+  stage: deploy
+  before_script:
+    - mkdir -p /root/.m2
+    - touch /root/.m2/settings-security.xml
+    - echo "<settingsSecurity><master>${MAVEN_MASTER_PASSWORD}</master></settingsSecurity>" > /root/.m2/settings-security.xml
+  script:
+    - mvn $MAVEN_CLI_OPTS deploy
+#  only:
+#    - develop
+#    - masterr

@@ -15,7 +15,23 @@
         <scala.version>2.11.11</scala.version>
         <spark.version>2.2.0</spark.version>
         <baseVersion>1.2.0</baseVersion>
+        <maven-deploy-plugin.version>2.8.1</maven-deploy-plugin.version>
     </properties>
+
+
+    <distributionManagement>
+        <repository>
+            <id>nexus-release</id>
+            <name>Nexus Agile Repository</name>
+            <url>${env.NEXUS_URL}/repository/maven-releases</url>
+            <layout>default</layout>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Nexus Agile Repository</name>
+            <url>${env.NEXUS_URL}/repository/maven-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <repositories>
         <repository>
@@ -238,33 +254,35 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- This plugin is needed because otherwise the deployed POM would have a non-resolved variable as project
-                 version, breaking dependency resolution. See also MNG-2971 -->
+
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.2</version>
+                <version>${maven-deploy-plugin.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.5.1</version>
                 <executions>
-                    <!-- Disable the default execution -->
                     <execution>
                         <id>default-deploy</id>
-                        <phase>none</phase>
-                    </execution>
-                    <!-- Deploys the pom without placeholders instead of the one with placeholders -->
-                    <execution>
-                        <id>custom-deploy</id>
                         <phase>deploy</phase>
                         <goals>
-                            <goal>deploy-file</goal>
+                            <goal>deploy</goal>
                         </goals>
-                        <configuration>
-                            <file>target/${project.build.finalName}.jar</file>
-                            <pomFile>target/modified-pom-replacePomPlaceholder/modified-pom/pom.xml</pomFile>
-                            <repositoryId>bintray-repo</repositoryId>
-                            <url>https://api.bintray.com/maven/agile-lab-dev/Spark-Solr/spark-solr</url>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <serverId>nexus</serverId>
+                    <nexusUrl>${env.NEXUS_URL}/nexus/</nexusUrl>
+                    <skipStaging>true</skipStaging>
+                </configuration>
             </plugin>
+
         </plugins>
     </build>
 
@@ -378,5 +396,4 @@
             <version>2.11.11</version><!-- TODO parametrizzare a seconda dei profili-->
         </dependency>
     </dependencies>
-
 </project>

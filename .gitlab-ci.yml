@@ -18,7 +18,7 @@ stages:
 build:
   stage: build
   script:
-    - mvn $MAVEN_CLI_OPTS compile
+    - mvn $MAVEN_CLI_OPTS -Pspark-2.2-scala-2.11 compile
 
 deploy:
   stage: deploy
@@ -27,7 +27,7 @@ deploy:
     - touch /root/.m2/settings-security.xml
     - echo "<settingsSecurity><master>${MAVEN_MASTER_PASSWORD}</master></settingsSecurity>" > /root/.m2/settings-security.xml
   script:
-    - mvn $MAVEN_CLI_OPTS deploy
+    - mvn $MAVEN_CLI_OPTS -Pspark-2.2-scala-2.11 deploy
 #  only:
 #    - develop
 #    - masterr

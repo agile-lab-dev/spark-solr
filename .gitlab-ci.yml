@@ -13,21 +13,14 @@ cache:
 
 stages:
   - build
-  - deploy
 
 build:
   stage: build
-  script:
-    - mvn $MAVEN_CLI_OPTS -Pspark-2.2-scala-2.11 compile
-
-deploy:
-  stage: deploy
   before_script:
     - mkdir -p /root/.m2
     - touch /root/.m2/settings-security.xml
     - echo "<settingsSecurity><master>${MAVEN_MASTER_PASSWORD}</master></settingsSecurity>" > /root/.m2/settings-security.xml
+
   script:
+    - mvn $MAVEN_CLI_OPTS -Pspark-2.2-scala-2.11 compile
     - mvn $MAVEN_CLI_OPTS -Pspark-2.2-scala-2.11 deploy
-#  only:
-#    - develop
-#    - masterr

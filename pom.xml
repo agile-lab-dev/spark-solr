@@ -5,7 +5,7 @@
     <groupId>it.agilelab.bigdata.spark</groupId>
     <artifactId>spark-solr</artifactId>
     <packaging>jar</packaging>
-    <version>${completeVersion}</version>
+    <version>1.2.0-spark-2.2-scala-2.11</version>
     <name>spark-solr</name>
     <url>http://maven.apache.org</url>
 
@@ -65,7 +65,7 @@
         <profile>
             <id>spark-1.6-scala-2.10</id>
             <properties>
-                <completeVersion>${baseVersion}-spark-1.6-scala-2.10</completeVersion>
+                <completeVersion>1.2.0-spark-2.2-scala-2.11</completeVersion>
                 <scala.version>2.10</scala.version>
                 <spark.version>1.6.3</spark.version>
             </properties>

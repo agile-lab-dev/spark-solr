@@ -17,12 +17,6 @@
         <maven-deploy-plugin.version>2.8.1</maven-deploy-plugin.version>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>spark-2.2-scala-2.11</id>
-        </profile>
-    </profiles>
-
     <distributionManagement>
         <repository>
             <id>nexus-release</id>

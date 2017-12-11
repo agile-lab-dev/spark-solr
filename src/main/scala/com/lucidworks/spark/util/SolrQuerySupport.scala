@@ -70,7 +70,8 @@ object SolrQuerySupport {
   def getFieldTypes(fields: Set[String], solrUrl: String): Map[String, SolrFieldMeta] = {
     val fieldTypeMap = new mutable.HashMap[String, SolrFieldMeta]()
     val fieldTypeToClassMap = getFieldTypeToClassMap(solrUrl)
-    val fieldNames = if (fields == null || fields.isEmpty) getFieldsFromLuke(solrUrl) else fields
+    //val fieldNames = if (fields == null || fields.isEmpty) getFieldsFromLuke(solrUrl) else fields
+    val fieldNames = if (fields == null || fields.isEmpty) getFieldsFromSchema(solrUrl) else fields
     val fieldDefinitionsFromSchema = getFieldDefinitionsFromSchema(solrUrl, fieldNames)
     fieldDefinitionsFromSchema.foreach{ case(name, payloadRef) =>
       payloadRef match {
@@ -222,6 +223,30 @@ object SolrQuerySupport {
         case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) => m.asInstanceOf[Map[String, Any]].keySet
         case somethingElse: Any =>  throw new Exception("Unknown type '" + somethingElse.getClass + "'")
       }
+    } catch {
+      case e1: Exception =>
+        //TODO handle logging log.warn("Can't get schema fields from url " + lukeUrl + " due to: " + e1)
+        throw e1
+    }
+  }
+
+  def getFieldsFromSchema(solrUrl: String): Set[String] = {
+    implicit val formats = DefaultFormats
+
+    val schemaUrl: String = solrUrl + "schema/fields"
+    try {
+      val adminMeta: JValue = SolrJsonSupport.getJson(SolrJsonSupport.getHttpClient(), schemaUrl, 2)
+      if (!adminMeta.has("fields")) {
+        throw new Exception("Cannot find 'fields' payload inside Schema: " + compact(adminMeta))
+      }
+
+      val fieldsRef = adminMeta \ "fields"
+
+      fieldsRef.children.map(f=> {
+        val c = f.values.asInstanceOf[Map[Any,Any]]
+        c("name").asInstanceOf[String]
+      }).toSet
+
     } catch {
       case e1: Exception =>
         //TODO handle logging log.warn("Can't get schema fields from url " + lukeUrl + " due to: " + e1)

@@ -260,6 +260,7 @@
                 </executions>
             </plugin>-->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>${maven-deploy-plugin.version}</version>
                 <executions>
@@ -272,17 +273,19 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <repositoryId>nexus-release</repositoryId>
                     <file>${project.basedir}/target/${project.artifactId}-${project.version}-${env.classifier}.jar</file>
                     <groupId>it.agilelab.bigdata.spark</groupId>
                     <artifactId>spark-solr</artifactId>
-                    <version>${project.version}-${env.classifier}</version>
+                    <version>${project.version}</version>
                     <packaging>jar</packaging>
                     <url>${env.NEXUS_URL}/repository/maven-releases</url>
+                    <classifier>${env.classifier}</classifier>
                 </configuration>
             </plugin>
 
 
-            <plugin>
+            <!--<plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.5.1</version>
@@ -300,7 +303,7 @@
                     <nexusUrl>${env.NEXUS_URL}/nexus/</nexusUrl>
                     <skipStaging>true</skipStaging>
                 </configuration>
-            </plugin>
+            </plugin>-->
 
 
         </plugins>

@@ -5,7 +5,7 @@
     <groupId>it.agilelab.bigdata.spark</groupId>
     <artifactId>spark-solr</artifactId>
     <packaging>jar</packaging>
-    <version>1.2.0-spark-2.2-scala-2.11</version>
+    <version>1.2.0</version>
     <name>spark-solr</name>
     <url>http://maven.apache.org</url>
 
@@ -14,7 +14,6 @@
         <java.version>1.7</java.version>
         <scala.version>2.11.11</scala.version>
         <spark.version>2.2.0</spark.version>
-        <baseVersion>1.2.0</baseVersion>
         <maven-deploy-plugin.version>2.8.1</maven-deploy-plugin.version>
     </properties>
 
@@ -65,9 +64,9 @@
         <profile>
             <id>spark-1.6-scala-2.10</id>
             <properties>
-                <completeVersion>1.2.0-spark-2.2-scala-2.11</completeVersion>
                 <scala.version>2.10</scala.version>
                 <spark.version>1.6.3</spark.version>
+                <env.classifier>spark-1.6-scala-2.10</env.classifier>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
@@ -76,33 +75,33 @@
         <profile>
             <id>spark-1.6-scala-2.11</id>
             <properties>
-                <completeVersion>${baseVersion}-spark-1.6-scala-2.11</completeVersion>
                 <scala.version>2.11</scala.version>
                 <spark.version>1.6.3</spark.version>
+                <env.classifier>spark-1.6-scala-2.11</env.classifier>
             </properties>
         </profile>
         <profile>
             <id>spark-2.2-scala-2.11</id>
             <properties>
-                <completeVersion>${baseVersion}-spark-2.2-scala-2.11</completeVersion>
                 <scala.version>2.11</scala.version>
                 <spark.version>2.2.0</spark.version>
+                <env.classifier>spark-2.2-scala-2.11</env.classifier>
             </properties>
         </profile>
         <profile>
             <id>spark-2.1-scala-2.11</id>
             <properties>
-                <completeVersion>${baseVersion}-spark-2.1-scala-2.11</completeVersion>
                 <scala.version>2.11</scala.version>
                 <spark.version>2.1.1</spark.version>
+                <env.classifier>spark-2.1-scala-2.11</env.classifier>
             </properties>
         </profile>
         <profile>
             <id>spark-2.0-scala-2.11</id>
             <properties>
-                <completeVersion>${baseVersion}-spark-2.0-scala-2.11</completeVersion>
                 <scala.version>2.11</scala.version>
                 <spark.version>2.0.2</spark.version>
+                <env.classifier>spark-2.0-scala-2.11</env.classifier>
             </properties>
         </profile>
     </profiles>
@@ -127,6 +126,12 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <classifier>${env.classifier}</classifier>
                 </configuration>
             </plugin>
             <plugin>
@@ -236,11 +241,11 @@
             </plugin>
             <!-- This plugin is needed because otherwise the installed POM would have a non-resolved variable as project
                  version, breaking dependency resolution. See also MNG-2971 -->
-            <plugin>
+            <!--<plugin>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>2.5.2</version>
                 <executions>
-                    <!-- Replaces the pom (with placeholders) in the repository with the pom without placeholders -->
+                    &lt;!&ndash; Replaces the pom (with placeholders) in the repository with the pom without placeholders &ndash;&gt;
                     <execution>
                         <id>overwrite-pom</id>
                         <phase>install</phase>
@@ -248,22 +253,39 @@
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <file>target/${project.build.finalName}.jar</file>
                             <pomFile>target/modified-pom-replacePomPlaceholder/modified-pom/pom.xml</pomFile>
+                            <classifier>${env.classifier}</classifier>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
+            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>${maven-deploy-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy-file</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
-                    <skip>true</skip>
+                    <repositoryId>nexus-release</repositoryId>
+                    <file>${project.basedir}/target/${project.artifactId}-${project.version}-${env.classifier}.jar</file>
+                    <groupId>it.agilelab.bigdata.spark</groupId>
+                    <artifactId>spark-solr</artifactId>
+                    <version>${project.version}</version>
+                    <packaging>jar</packaging>
+                    <url>${env.NEXUS_URL}/repository/maven-releases</url>
+                    <classifier>${env.classifier}</classifier>
                 </configuration>
             </plugin>
-            <plugin>
+
+
+            <!--<plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.5.1</version>
@@ -281,7 +303,8 @@
                     <nexusUrl>${env.NEXUS_URL}/nexus/</nexusUrl>
                     <skipStaging>true</skipStaging>
                 </configuration>
-            </plugin>
+            </plugin>-->
+
 
         </plugins>
     </build>

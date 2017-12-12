@@ -81,12 +81,12 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <classifier>${env.classifier}</classifier>
                 </configuration>
-            </plugin>
+            </plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -227,13 +227,14 @@
                 </executions>
                 <configuration>
                     <repositoryId>nexus-release</repositoryId>
-                    <file>${project.basedir}/target/${project.artifactId}-${project.version}-${env.classifier}.jar</file>
+                    <!-- file>${project.basedir}/target/${project.artifactId}-${project.version}-${env.classifier}.jar</file -->
+                    <file>${project.basedir}/target/${project.artifactId}-${project.version}.jar</file>
                     <groupId>it.agilelab.bigdata.spark</groupId>
                     <artifactId>spark-solr</artifactId>
                     <version>${project.version}</version>
                     <packaging>jar</packaging>
                     <url>${env.NEXUS_URL}/repository/maven-releases</url>
-                    <classifier>${env.classifier}</classifier>
+                    <!-- classifier>${env.classifier}</classifier -->
                 </configuration>
             </plugin>
 

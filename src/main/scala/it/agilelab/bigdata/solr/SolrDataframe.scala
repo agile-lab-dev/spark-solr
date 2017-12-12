@@ -145,7 +145,7 @@ object SolrDataframe {
   }
 }
 
-class SolrDataframe(sparkSession: SparkSession, zkHosts: String, collection: String, query: Option[String]) {
+class SolrDataframe(sparkSession: SparkSession, zkHosts: String, collection: String) {
 
   val df: DataFrame = retrieveDataFrame()
 
@@ -155,7 +155,7 @@ class SolrDataframe(sparkSession: SparkSession, zkHosts: String, collection: Str
     //TODO review boolean params
     val dfStruct: StructType = SolrDataframe.getBaseSchema(zkHosts, collection, false, false)
 
-    val getAllQuery = new SolrQuery(query.getOrElse("*:*"))
+    val getAllQuery = new SolrQuery("*:*")
     val solrRdd = new SolrRDD(zkHosts, collection)
     val rddSolrDoc = solrRdd
       .query(sparkSession.sparkContext, getAllQuery, false /* TODO deepPaging better for performances*/)

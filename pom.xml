@@ -5,7 +5,7 @@
     <groupId>it.agilelab.bigdata.spark</groupId>
     <artifactId>spark-solr</artifactId>
     <packaging>jar</packaging>
-    <version>1.2.4-spark-2.2-scala-2.11</version>
+    <version>1.2.5-spark-2.2-scala-2.11</version>
     <name>spark-solr</name>
     <url>http://maven.apache.org</url>
 

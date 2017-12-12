@@ -24,5 +24,5 @@ build:
 
   script:
     - ls -lha
-    - mvn $MAVEN_CLI_OPTS -Pspark-2.2-scala-2.11 compile
-    - mvn $MAVEN_CLI_OPTS -Pspark-2.2-scala-2.11 deploy
+    - mvn $MAVEN_CLI_OPTS compile #-Pspark-2.2-scala-2.11 compile
+    - mvn $MAVEN_CLI_OPTS deploy #-Pspark-2.2-scala-2.11 deploy

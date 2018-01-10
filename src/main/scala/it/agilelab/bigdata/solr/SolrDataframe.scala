@@ -156,10 +156,13 @@ class SolrDataframe(sparkSession: SparkSession, zkHosts: String, collection: Str
     val dfStruct: StructType = SolrDataframe.getBaseSchema(zkHosts, collection, false, false)
 
     val getAllQuery = new SolrQuery("*:*")
+    getAllQuery.setFields(dfStruct.fields.map(_.name):_*)
     val solrRdd = new SolrRDD(zkHosts, collection)
     val rddSolrDoc = solrRdd
-      .query(sparkSession.sparkContext, getAllQuery, false /* TODO deepPaging better for performances*/)
+      .query(sparkSession.sparkContext, getAllQuery, true) // use deepPaging for better performances
       .rdd
+
+//    println("### DOCUMENTS-COUNT ### :" + rddSolrDoc.count())
 
    val rddRows = SolrDataframe.docToRows(dfStruct, rddSolrDoc)
 

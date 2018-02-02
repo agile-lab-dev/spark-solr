@@ -70,6 +70,14 @@ deploy_public:
                   <password>${env.BINTRAY_API_KEY}</password>
                 </server>
               </servers>
+              <mirrors>
+                <mirror>
+                  <id>central</id>
+                  <name>central</name>
+                  <url>${env.NEXUS_URL}/repository/maven-public/</url>
+                  <mirrorOf>central</mirrorOf>
+                </mirror>
+              </mirrors>
             </settings>' > /root/.m2/settings.xml
   script:
     - echo "Build directory contents:"

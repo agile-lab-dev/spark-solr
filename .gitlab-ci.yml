@@ -58,7 +58,6 @@ deploy_public:
   tags:
     - cluster01
   stage: build
-  image: "hseeberger/scala-sbt:8u151-2.12.4-1.0.2"
   before_script: # setups configurations for maven to use bintray for deployment
     - mkdir -p /root/.m2
     - >

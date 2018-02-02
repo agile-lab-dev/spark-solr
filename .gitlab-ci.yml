@@ -61,12 +61,15 @@ deploy_public:
   before_script: # setups configurations for maven to use bintray for deployment
     - mkdir -p /root/.m2
     - >
-      echo '<settings>
-              <server>
-                <id>bintray-agile-lab-dev-Spark-Solr</id>
-                <username>${env.BINTRAY_USERNAME}</username>
-                <password>${env.BINTRAY_API_KEY}</password>
-              </server>
+      echo '<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
+                      xmlns="http://maven.apache.org/SETTINGS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <servers>
+                <server>
+                  <id>bintray-agile-lab-dev-Spark-Solr</id>
+                  <username>${env.BINTRAY_USERNAME}</username>
+                  <password>${env.BINTRAY_API_KEY}</password>
+                </server>
+              </servers>
             </settings>' > /root/.m2/settings.xml
   script:
     - echo "Build directory contents:"

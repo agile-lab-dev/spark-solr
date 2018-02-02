@@ -5,7 +5,7 @@
     <groupId>it.agilelab.bigdata.spark</groupId>
     <artifactId>spark-solr</artifactId>
     <packaging>jar</packaging>
-    <version>1.2.9</version>
+    <version>1.2.10</version>
     <name>spark-solr</name>
     <url>http://maven.apache.org</url>
 
@@ -17,19 +17,34 @@
         <maven-deploy-plugin.version>2.8.1</maven-deploy-plugin.version>
     </properties>
 
-    <distributionManagement>
-        <repository>
-            <id>nexus-release</id>
-            <name>Nexus Agile Repository</name>
-            <url>${env.NEXUS_URL}/repository/maven-releases</url>
-            <layout>default</layout>
-        </repository>
-        <snapshotRepository>
-            <id>nexus-snapshots</id>
-            <name>Nexus Agile Repository</name>
-            <url>${env.NEXUS_URL}/repository/maven-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <profiles>
+        <profile>
+            <id>internal</id>
+            <distributionManagement>
+                <repository>
+                    <id>nexus-release</id>
+                    <name>Nexus Agile Repository</name>
+                    <url>${env.NEXUS_URL}/repository/maven-releases</url>
+                    <layout>default</layout>
+                </repository>
+                <snapshotRepository>
+                    <id>nexus-snapshots</id>
+                    <name>Nexus Agile Repository</name>
+                    <url>${env.NEXUS_URL}/repository/maven-snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>public</id>
+            <distributionManagement>
+                <repository>
+                    <id>bintray-agile-lab-dev-Spark-Solr</id>
+                    <name>agile-lab-dev-Spark-Solr</name>
+                    <url>https://api.bintray.com/maven/agile-lab-dev/Spark-Solr/spark-solr/;publish=1</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -188,7 +203,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>${maven-deploy-plugin.version}</version>
-                <executions>
+                <!--executions>
                     <execution>
                         <id>default-deploy</id>
                         <phase>none</phase>
@@ -200,21 +215,19 @@
                             <goal>deploy-file</goal>
                         </goals>
                     </execution>
-                </executions>
-                <configuration>
+                </executions-->
+                <!--configuration>
                     <repositoryId>nexus-release</repositoryId>
-                    <!-- file>${project.basedir}/target/${project.artifactId}-${project.version}-${env.classifier}.jar</file -->
+                    < !- file>${project.basedir}/target/${project.artifactId}-${project.version}-${env.classifier}.jar</file ->
                     <file>${project.basedir}/target/${project.artifactId}-${project.version}.jar</file>
                     <groupId>it.agilelab.bigdata.spark</groupId>
                     <artifactId>spark-solr</artifactId>
                     <version>${project.version}</version>
                     <packaging>jar</packaging>
                     <url>${env.NEXUS_URL}/repository/maven-releases</url>
-                    <!-- classifier>${env.classifier}</classifier -->
-                </configuration>
+                    <!- classifier>${env.classifier}</classifier ->
+                </configuration -->
             </plugin>
-
-
             <!--<plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -234,8 +247,6 @@
                     <skipStaging>true</skipStaging>
                 </configuration>
             </plugin>-->
-
-
         </plugins>
     </build>
 

@@ -1,28 +1,75 @@
 image: maven:latest
 
 variables:
-  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true"
-
-
-cache:
-  key: "$CI_BUILD_REF_NAME" # contains either the branch or the tag, so it's caching per branch
-  paths:
-    - .m2/repository/
-    - target/
+  MAVEN_CLI_OPTS: "--batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=maven-cache/repository -Dmaven.test.skip=true"
 
 stages:
   - build
 
-build:
+# jobs for internal uses
+deploy_internal:
+  tags:
+    - criticalcase
   stage: build
-  before_script:
+  cache:
+    key: "$CI_BUILD_REF_NAME" # contains either the branch or the tag, so it's caching per branch
+    paths:
+      - maven-cache/repository/
+      - target/
+  before_script: # setups configurations for maven to use internal nexus for deployment
     - ls -lha
     - mkdir -p /root/.m2
-    - touch /root/.m2/settings-security.xml
-    - echo "<settingsSecurity><master>${MAVEN_MASTER_PASSWORD}</master></settingsSecurity>" > /root/.m2/settings-security.xml
-
+    - >
+      echo "<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
+                      xmlns="http://maven.apache.org/SETTINGS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <servers>
+                <server>
+                  <id>nexus-release</id>
+                  <username>${env.NEXUS_USERNAME}</username>
+                  <password>${env.NEXUS_PASSWORD_ENCRYPTED}</password>
+                </server>
+                <server>
+                  <id>nexus-snapshots</id>
+                  <username>${env.NEXUS_USERNAME}</username>
+                  <password>${env.NEXUS_PASSWORD_ENCRYPTED}</password>
+                </server>
+              </servers>
+              <mirrors>
+                <mirror>
+                  <id>central</id>
+                  <name>central</name>
+                  <url>${env.NEXUS_URL}/repository/maven-public/</url>
+                  <mirrorOf>central</mirrorOf>
+                </mirror>
+              </mirrors>
+            </settings>" > /root/.m2/settings.xml
+    - >
+      echo "<settingsSecurity>
+              <master>${MAVEN_MASTER_PASSWORD}</master>
+            </settingsSecurity>" > /root/.m2/settings-security.xml
   script:
+    - echo "Build directory contents:"
     - ls -lha
-    - mvn $MAVEN_CLI_OPTS compile #-Pspark-2.2-scala-2.11 compile
-    - mvn $MAVEN_CLI_OPTS deploy #-Pspark-2.2-scala-2.11 deploy
+    - mvn $MAVEN_CLI_OPTS deploy -Pinternal
+
+# jobs for public uses
+deploy_public:
+  tags:
+    - cluster01
+  stage: compile
+  image: "hseeberger/scala-sbt:8u151-2.12.4-1.0.2"
+  before_script: # setups configurations for maven to use bintray for deployment
+    - mkdir -p /root/.m2
+    - >
+      echo "<settings>
+              <server>
+                <id>bintray-agile-lab-dev-Spark-Solr</id>
+                <username>${env.BINTRAY_USERNAME}</username>
+                <password>${env.BINTRAY_API_KEY}</password>
+              </server>
+            </settings>" > /root/.m2/settings.xml
+  script:
+    - echo "Build directory contents:"
+    - ls -lha
+    - mvn $MAVEN_CLI_OPTS deploy -Ppublic

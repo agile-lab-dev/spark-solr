@@ -4,11 +4,13 @@ import java.sql.Timestamp
 import java.util.Date
 
 import com.lucidworks.spark.util.SolrQuerySupport
-import com.lucidworks.spark.SolrSupport
-import com.lucidworks.spark.SolrRDD
+import com.lucidworks.spark.util.SolrSupport
+import com.lucidworks.spark.rdd.{SelectSolrRDD, SolrRDD}
 import org.apache.log4j.Logger
 import org.apache.solr.client.solrj.SolrQuery
+import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.SolrDocument
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SQLContext, SparkSession}
@@ -32,8 +34,11 @@ object SolrDataframe {
                      collection: String,
                      escapeFields: Boolean,
                      flattenMultivalued: Boolean): StructType = {
-    val solrBaseUrl = SolrSupport.getSolrBaseUrl(zkHost)
-    val fieldTypeMap = SolrQuerySupport.getFieldTypes(fields, solrBaseUrl, collection)
+
+    val solrBaseUrl: String = SolrSupport.getSolrBaseUrl(zkHost)
+    val solrClient: CloudSolrClient = SolrSupport.getCachedCloudClient(zkHost)
+
+    val fieldTypeMap = SolrQuerySupport.getFieldTypes(fields, solrBaseUrl, solrClient, collection)
     val structFields = new ListBuffer[StructField]
 
     fieldTypeMap.foreach{ case(fieldName, fieldMeta) =>
@@ -147,6 +152,8 @@ object SolrDataframe {
 
 class SolrDataframe(sparkSession: SparkSession, zkHosts: String, collection: String) {
 
+  implicit val sc: SparkContext = sparkSession.sparkContext
+
   val df: DataFrame = retrieveDataFrame()
 
   private def retrieveDataFrame(): DataFrame = {
@@ -157,12 +164,9 @@ class SolrDataframe(sparkSession: SparkSession, zkHosts: String, collection: Str
 
     val getAllQuery = new SolrQuery("*:*")
     getAllQuery.setFields(dfStruct.fields.map(_.name):_*)
-    val solrRdd = new SolrRDD(zkHosts, collection)
-    val rddSolrDoc = solrRdd
-      .query(sparkSession.sparkContext, getAllQuery, true) // use deepPaging for better performances
-      .rdd
 
-//    println("### DOCUMENTS-COUNT ### :" + rddSolrDoc.count())
+    val solrRdd = new SelectSolrRDD(zkHosts, collection, sc)
+    val rddSolrDoc = solrRdd.query(getAllQuery)
 
    val rddRows = SolrDataframe.docToRows(dfStruct, rddSolrDoc)
 

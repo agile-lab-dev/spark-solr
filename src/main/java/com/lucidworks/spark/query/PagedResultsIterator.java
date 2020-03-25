@@ -1,12 +1,13 @@
 package com.lucidworks.spark.query;
 
-import com.lucidworks.spark.SolrRDD;
+import com.lucidworks.spark.util.SolrQuerySupport;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
+import scala.Option;
 
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +21,7 @@ public abstract class PagedResultsIterator<T> implements Iterator<T>, Iterable<T
 
   protected static final int DEFAULT_PAGE_SIZE = 50;
 
-  protected SolrServer solrServer;
+  protected SolrClient solrServer;
   protected SolrQuery solrQuery;
   protected int currentPageSize = 0;
   protected int iterPos = 0;
@@ -31,13 +32,13 @@ public abstract class PagedResultsIterator<T> implements Iterator<T>, Iterable<T
 
   protected List<T> currentPage;
 
-  public PagedResultsIterator(SolrServer solrServer, SolrQuery solrQuery) {
+  public PagedResultsIterator(SolrClient solrServer, SolrQuery solrQuery) {
     this(solrServer, solrQuery, null);
   }
 
-  public PagedResultsIterator(SolrServer solrServer, SolrQuery solrQuery, String cursorMark) {
+  public PagedResultsIterator(SolrClient solrServer, SolrQuery solrQuery, String cursorMark) {
     this.solrServer = solrServer;
-    this.closeAfterIterating = !(solrServer instanceof CloudSolrServer);
+    this.closeAfterIterating = !(solrServer instanceof CloudSolrClient);
     this.solrQuery = solrQuery;
     this.cursorMark = cursorMark;
     if (solrQuery.getRows() == null)
@@ -57,8 +58,10 @@ public abstract class PagedResultsIterator<T> implements Iterator<T>, Iterable<T
     boolean hasNext = (iterPos < currentPageSize);
     if (!hasNext && closeAfterIterating) {
       try {
-        solrServer.shutdown();
-      } catch (Exception exc) {}
+        solrServer.close();
+      } catch (Exception exc) {
+        exc.printStackTrace();
+      }
     }
     return hasNext;
   }
@@ -70,14 +73,19 @@ public abstract class PagedResultsIterator<T> implements Iterator<T>, Iterable<T
 
   protected List<T> fetchNextPage() throws SolrServerException {
     int start = (cursorMark != null) ? 0 : getStartForNextPage();
-    QueryResponse resp = SolrRDD.querySolr(solrServer, solrQuery, start, cursorMark);
-    if (cursorMark != null)
-      cursorMark = resp.getNextCursorMark();
+    Option<QueryResponse> resp = SolrQuerySupport.querySolr(solrServer, solrQuery, start, cursorMark);
+    if (resp.isDefined()) {
+      if (cursorMark != null)
+        cursorMark = resp.get().getNextCursorMark();
 
-    iterPos = 0;
-    SolrDocumentList docs = resp.getResults();
-    totalDocs = docs.getNumFound();
-    return processQueryResponse(resp);
+      iterPos = 0;
+      SolrDocumentList docs = resp.get().getResults();
+      totalDocs = docs.getNumFound();
+      return processQueryResponse(resp.get());
+    } else {
+      throw new SolrServerException("Found None Query response");
+    }
+
   }
 
   protected abstract List<T> processQueryResponse(QueryResponse resp);

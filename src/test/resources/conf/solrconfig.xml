@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <config>
-  <luceneMatchVersion>4.10.3</luceneMatchVersion>
+  <luceneMatchVersion>6.4.2</luceneMatchVersion>
   <dataDir>${solr.data.dir:}</dataDir>
   <directoryFactory name="DirectoryFactory" class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
   <codecFactory class="solr.SchemaCodecFactory"/>
-  <schemaFactory class="ClassicIndexSchemaFactory"/>
+<!--  <schemaFactory class="ClassicIndexSchemaFactory"/> -->
+  <schemaFactory class="ManagedIndexSchemaFactory">
+    <bool name="mutable">true</bool>
+    <str name="managedSchemaResourceName">managed-schema</str>
+  </schemaFactory>
   <indexConfig>
     <lockType>${solr.lock.type:native}</lockType>
-    <unlockOnStartup>true</unlockOnStartup>
     <infoStream>false</infoStream>
-    <checkIntegrityAtMerge>false</checkIntegrityAtMerge>
   </indexConfig>
   <updateHandler class="solr.DirectUpdateHandler2">
     <updateLog>
@@ -87,9 +89,6 @@
   <requestHandler name="/analysis/document" 
                   class="solr.DocumentAnalysisRequestHandler" 
                   startup="lazy" />
-
-  <requestHandler name="/admin/" 
-                  class="solr.admin.AdminHandlers" />
 
   <requestHandler name="/admin/ping" class="solr.PingRequestHandler">
     <lst name="invariants">

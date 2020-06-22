@@ -1,39 +1,15 @@
 image: maven:latest
 
-variables:
-  MAVEN_CLI_OPTS: "--batch-mode"
-  MAVEN_OPTS: "-Dmaven.repo.local=maven-cache/repository -Dmaven.test.skip=true"
-
 stages:
-  - build
+  - test
+  - compile
 
-# jobs for public uses
-deploy_public:
-  stage: build
-  before_script: # setups configurations for maven to use bintray for deployment
-    - mkdir -p /root/.m2
-    - >
-      echo ${env.NEXUS_URL}
-
-      echo '<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
-                      xmlns="http://maven.apache.org/SETTINGS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-              <servers>
-                <server>
-                  <id>bintray-agile-lab-dev-Spark-Solr</id>
-                  <username>${env.BINTRAY_USERNAME}</username>
-                  <password>${env.BINTRAY_API_KEY}</password>
-                </server>
-              </servers>
-              <mirrors>
-                <mirror>
-                  <id>central</id>
-                  <name>central</name>
-                  <url>${env.NEXUS_URL}/repository/maven-public/</url>
-                  <mirrorOf>central</mirrorOf>
-                </mirror>
-              </mirrors>
-            </settings>' > /root/.m2/settings.xml
+test:
+  stage: test
   script:
-    - echo "Build directory contents:"
-    - ls -lha
-    - mvn $MAVEN_CLI_OPTS deploy -Ppublic
+    - mvn clean test
+
+compile:
+  stage: compile
+  script:
+    - mvn clean compile

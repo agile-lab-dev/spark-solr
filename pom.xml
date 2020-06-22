@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>it.agilelab.bigdata.spark</groupId>
   <artifactId>spark-solr</artifactId>
-  <version>3.8.0</version>
+  <version>3.8.1</version>
   <packaging>jar</packaging>
   <name>spark-solr</name>
   <description>Tools for reading data from Spark into Solr</description>
@@ -270,10 +270,6 @@
                   <pattern>org.apache.commons.cli</pattern>
                   <shadedPattern>shaded.apache.commons.cli</shadedPattern>
                 </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>shaded.apache.http</shadedPattern>
-		</relocation>
               </relocations>
             </configuration>
           </execution>

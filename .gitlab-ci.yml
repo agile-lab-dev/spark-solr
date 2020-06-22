@@ -9,8 +9,6 @@ stages:
 
 # jobs for public uses
 deploy_public:
-  tags:
-    - cluster01
   stage: build
   before_script: # setups configurations for maven to use bintray for deployment
     - mkdir -p /root/.m2
